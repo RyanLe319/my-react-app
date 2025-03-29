@@ -1,0 +1,37 @@
+/* navLinks.css */
+.nav-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+/* Base link styles */
+.nav-links a {
+    text-decoration: none;
+    color: #333; /* Default color for header */
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: #1976d2;
+}
+
+
+@media (max-width: 768px) {
+    .nav-links {
+        width: 100%;
+        justify-content: space-around;
+    }
+}
+
+/* Styling for footer */
+.footer-nav .nav-links a {
+    color: #6c757d; /* Bootstrap's text-body-secondary color */
+    font-weight: 400; /* Matches Bootstrap's default text weight */
+    transition: color 0.2s ease; /* Adds smooth color transition */
+}
+
+.footer-nav .nav-links a:hover {
+    color: #1976d2; /* Adds hover effect color (same as in your original styling) */
+}
