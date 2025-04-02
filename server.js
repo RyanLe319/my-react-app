@@ -77,27 +77,45 @@ app.post("/", async (req, res) => {
 });
 
 
-// Add this to server.js (before app.listen)
-app.get("/manga", async (req, res) => {
-  try {
-    const limit = req.query.limit || 10; // Default to 10, can be overridden
-    const result = await db.query(`
-      SELECT 
-        m.*,
-        w.last_chapter_read,
-        (m.latest_chapter - w.last_chapter_read) AS chapters_behind
-      FROM manga m
-      LEFT JOIN watchlist w ON m.manga_id = w.manga_id
-      ORDER BY m.record_created DESC
-      LIMIT $1
-    `, [limit]);
+// GET /api/manga?page=1&limit=10
+app.get('/api/manga', async (req, res) => {
+  // Page = default page 1, limit = # of items per page, offset = to calculate how many entries to skip
+  // so page 2 = offset 10
+  const { page = 1, limit = 10 } = req.query;
+  const offset = (page - 1) * limit;
 
-    res.json(result.rows);
-  } catch (error) {
-    console.error("DB error:", error);
+  // Pull all the relevant info needed for a manga card
+  const query = `
+    SELECT 
+      m.manga_id,
+      m.title,
+      m.cover_art_url,
+      m.description,
+      m.status,
+      m.latest_chapter,
+      m.latest_chapter_date,
+      w.last_chapter_read,
+      w.date_added_to_watchlist,
+      COUNT(*) OVER() as total_count
+    FROM manga m
+    LEFT JOIN watchlist w ON m.manga_id = w.manga_id
+    ORDER BY m.record_created DESC
+    LIMIT $1 OFFSET $2
+  `;
+
+  //Store the results in rows which the results are an array of objects 
+  // and as a response , send it back stored in data
+  try {
+    const { rows } = await db.query(query, [limit, offset]);
+    res.json({
+      data: rows,
+      total: rows[0]?.total_count || 0
+    });
+  } catch (err) {
     res.status(500).json({ error: "Failed to fetch manga" });
   }
 });
+
 
 app.listen(port, () => {
 	console.log(`Server running on http://localhost:${port}`);
