@@ -17,6 +17,7 @@
     "axios": "^1.8.4",
     "body-parser": "^2.2.0",
     "bootstrap-icons": "^1.11.3",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",

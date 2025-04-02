@@ -1,9 +1,11 @@
 import React from "react";
+import "./watchListPage.css";
+import MangaGrid from "./MangaGrid";
 
 function WatchListPage(){
     return(
         <div>
-            <p>This is the WatchList Page</p>
+            <MangaGrid />
         </div>
     );
 }

@@ -9,11 +9,11 @@
     position: absolute;
     top: 0;
     right: 0;
-    transform: translate(-3px, -12px); /* Centers the circle on the corner */
+    transform: translate(-6px, -10px); /* Centers the circle on the corner */
     
     /* Circle styling */
     width: 50px;
-    height: 35px;
+    height: 40px;
     border-radius: 50%;
     background: #1976d2;
     color: white;
@@ -100,18 +100,39 @@
     text-overflow: ellipsis;
 }
 
-.more{
+/* Replace the existing .more styles with this */
+.button-group {
     display: flex;
-    justify-content: end;
-    margin: 0;
-    font-size: .6rem;
-    font-style: italic;
-    color: #1976d2; /* Blue color */
-    text-decoration: none; /* Remove underline */
-    transition: color 0.2s; /* Smooth hover effect */
-}
-
-.more:hover {
-    color: #1565c0; /* Slightly darker blue on hover */
-    text-decoration: underline; /* Optional: add underline on hover */
-}
+    justify-content: flex-end;
+    gap: 16px; /* Space between buttons */
+    align-items: center;
+    margin-top: 8px;
+  }
+  
+  .edit button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+  }
+  
+  .edit button:hover {
+    color: #1565c0;
+  }
+  
+  .more {
+    font-size: 0.9rem;
+    color: #333;
+    text-decoration: none;
+    transition: color 0.2s;
+    font-style:oblique;
+  }
+  
+  .more:hover {
+    color: #1565c0;
+    text-decoration: underline;
+  }

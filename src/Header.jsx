@@ -12,7 +12,10 @@ import NavLinks from "./NavLinks";
 function Header() {
     return (
         <div className="header">
-            <WebsiteLogo />
+            <div className="left-group">
+                <WebsiteLogo />
+            </div>
+            
             
             <h1 className="title">MTurtleBase</h1>
             
