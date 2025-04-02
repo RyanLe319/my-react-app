@@ -15,7 +15,7 @@
   }
   
 
-.footer-nav .nav-link-btn{
+#footer-nav a, #footer-nav .nav-link-btn{
   color: #6c757d;
   font-weight: 400;
 }

@@ -1,19 +1,20 @@
-.manga-card{
+/* Manga Card Container - Add fixed height */
+.manga-card {
     display: flex;
-    height: 100%;
-    position: relative; /* Required for absolute positioning */
-    overflow: visible; /* Allows badge to extend beyond card */
+    height: 285px; /* Fixed height matching grid row height */
+    position: relative;
+    background: white; /* Ensures consistent background */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional: for depth */
 }
 
+/* Keep all your existing badge styles */
 .corner-badge {
     position: absolute;
     top: 0;
     right: 0;
-    transform: translate(-6px, -10px); /* Centers the circle on the corner */
-    
-    /* Circle styling */
-    width: 50px;
-    height: 40px;
+    transform: translate(12px, -13px);
+    width: 60px;
+    height: 50px;
     border-radius: 50%;
     background: #1976d2;
     color: white;
@@ -23,30 +24,36 @@
     font-size: 0.7rem;
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-
-/* Image container with internal spacing */
-.manga-card-image {
-    width: 27%; /* Maintain your desired ratio */
-    background-color: white;
-
+    z-index: 2; /* Ensure badge stays above content */
 }
 
-/* Info section */
+/* Image container - add height constraint */
+.manga-card-image {
+    width: 27%;
+    height: 100%; /* Take full card height */
+    background-color: white;
+}
+
+.manga-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure images fill space properly */
+}
+
+/* Info section - add scrolling and height constraints */
 .manga-card-info {
     width: 70%;
     padding: 16px;
-    background: white;
+    height: 100%; /* Take full card height */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Contain content */
 }
 
-.manga-card-image img{
-    width: 100%;
-    height: 100%;
-}
-
-/* Title group styling */
+/* Title group - prevent expansion */
 .title-group {
     margin-bottom: 4px;
+    min-height: 0; /* Important for flex children */
 }
 
 .main-title {
@@ -54,6 +61,9 @@
     font-weight: 700;
     margin: 0;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .alt-title {
@@ -64,6 +74,15 @@
     margin-top: -4px;
     margin-left: 15px;
     margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Chapter info - prevent expansion */
+.chapter-group {
+    margin-bottom: 8px;
+    min-height: 0;
 }
 
 .sub-titles {
@@ -71,9 +90,12 @@
     font-weight: 500;
     margin: 0;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.chapter-difference{
+.chapter-difference {
     font-size: 0.75rem;
     color: #666;
     margin-bottom: 2px;
@@ -81,35 +103,45 @@
     font-style: italic;
 }
 
-.description-group{
-    margin-top: 15px;
+/* Description - add flexible container with truncation */
+.description-group {
+    margin-top: 8px;
+    flex: 1; /* Take remaining space */
+    min-height: 0; /* Crucial for proper flex behavior */
+    overflow: hidden;
 }
 
-.description-title{
+.description-title {
     font-size: 1.2rem;
     font-weight: 500;
     color: #333;
+    margin-bottom: 4px;
 }
 
-.description-group > p{
+.description-group > p {
     font-size: .9rem;
-    overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* Number of lines before truncation */
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+    overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
+    line-height: 1.4;
+    max-height: 4.2em; /* Fallback for non-webkit */
 }
 
-/* Replace the existing .more styles with this */
+/* Button group - position at bottom */
 .button-group {
     display: flex;
     justify-content: flex-end;
-    gap: 16px; /* Space between buttons */
+    gap: 16px;
     align-items: center;
-    margin-top: 8px;
-  }
-  
-  .edit button {
+    margin-top: auto; /* Push to bottom */
+    padding-top: 8px;
+}
+
+/* Keep all your existing button styles */
+.edit button {
     background: none;
     border: none;
     padding: 0;
@@ -118,21 +150,38 @@
     transition: color 0.2s;
     display: flex;
     align-items: center;
-  }
-  
-  .edit button:hover {
+}
+
+.edit button:hover {
     color: #1565c0;
-  }
-  
-  .more {
+}
+
+.delete{
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.delete :hover{
+    color: #1565c0;
+
+}
+
+.more {
     font-size: 0.9rem;
     color: #333;
     text-decoration: none;
     transition: color 0.2s;
-    font-style:oblique;
-  }
-  
-  .more:hover {
+    font-style: oblique;
+}
+
+.more:hover {
     color: #1565c0;
     text-decoration: underline;
-  }
+}
+

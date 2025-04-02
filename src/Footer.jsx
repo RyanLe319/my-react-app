@@ -21,7 +21,7 @@ function Footer() {
 
             
 
-                <div className="footer-nav">
+                <div id="footer-nav">
                     <NavLinks />
                 </div>
 

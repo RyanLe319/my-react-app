@@ -43,7 +43,8 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   width: 100%;
   padding: 8px;
   border: 1px solid #ddd;
@@ -99,5 +100,104 @@
   color: white;
 }
 
+.auto-expand-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: none;
+  min-height: 60px;
+  overflow-y: hidden;
+  line-height: 1.4;
+  font-family: inherit;
+}
 
+/* Genre Input Styles */
+.genre-input-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
 
+.genre-input-container input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.add-genre-btn {
+  padding: 8px 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.add-genre-btn:hover {
+  background-color: #45a049;
+}
+
+.add-genre-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.genre-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.genre-tag {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e0e0e0;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+}
+
+.remove-genre-btn {
+  margin-left: 6px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.remove-genre-btn:hover {
+  color: #ff4444;
+}
+
+.remove-genre-btn:disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.submitting-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
