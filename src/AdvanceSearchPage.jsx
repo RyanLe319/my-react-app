@@ -32,6 +32,27 @@ function AdvanceSearchPage() {
 
   return (
     <div className="advance-search-container">
+      <div className="genre-filter-box">
+        <h3 className="filter-title">Genres</h3>
+        <div className="genre-grid">
+          <label className="genre-item">
+            <input type="checkbox" />
+            <span>Adventure</span>
+          </label>
+          <label className="genre-item">
+            <input type="checkbox" />
+            <span>Action</span>
+          </label>
+          <label className="genre-item">
+            <input type="checkbox" />
+            <span>Romance</span>
+          </label>
+          <label className="genre-item">
+            <input type="checkbox" />
+            <span>Comedy</span>
+          </label>
+        </div>
+      </div>
       <MangaGrid currentPage={currentPage} />
       <PaginationControls 
         currentPage={currentPage}
