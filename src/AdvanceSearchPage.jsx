@@ -3,6 +3,7 @@ import MangaGrid from "./MangaGrid";
 import PaginationControls from "./PaginationControls";
 import { useLocation } from "react-router-dom";
 import "./advanceSearchPage.css";
+import GenreList from "./GenreList";
 
 function AdvanceSearchPage() {
   const location = useLocation();
@@ -32,27 +33,7 @@ function AdvanceSearchPage() {
 
   return (
     <div className="advance-search-container">
-      <div className="genre-filter-box">
-        <h3 className="filter-title">Genres</h3>
-        <div className="genre-grid">
-          <label className="genre-item">
-            <input type="checkbox" />
-            <span>Adventure</span>
-          </label>
-          <label className="genre-item">
-            <input type="checkbox" />
-            <span>Action</span>
-          </label>
-          <label className="genre-item">
-            <input type="checkbox" />
-            <span>Romance</span>
-          </label>
-          <label className="genre-item">
-            <input type="checkbox" />
-            <span>Comedy</span>
-          </label>
-        </div>
-      </div>
+      < GenreList />
       <MangaGrid currentPage={currentPage} />
       <PaginationControls 
         currentPage={currentPage}

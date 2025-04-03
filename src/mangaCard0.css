@@ -154,6 +154,7 @@
 
 .edit button:hover {
     color: #1565c0;
+    
 }
 
 .delete{
@@ -168,7 +169,8 @@
 }
 
 .delete :hover{
-    color: #1565c0;
+    color: #dc3545;
+    
 
 }
 
