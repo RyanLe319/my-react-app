@@ -306,6 +306,156 @@ app.delete('/api/manga/:id', async (req, res) => {
   }
 });
 
+// Add this to your server.js (before app.listen)
+app.get('/api/genres', async (req, res) => {
+  try {
+    // Simple query to get all genres sorted by name
+    const result = await db.query(`
+      SELECT genre_id, genre_name 
+      FROM genres 
+      ORDER BY genre_name ASC
+    `);
+    
+    // Log the query result for debugging
+    console.log('Genres fetched:', result.rows);
+    
+    // Return the genres array
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching genres:', err);
+    res.status(500).json({ 
+      error: 'Failed to fetch genres',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+// Add this to your server.js (before app.listen)
+app.post('/api/genres', async (req, res) => {
+  const { genre_name } = req.body;
+
+  // Ensure the genre name is provided
+  if (!genre_name) {
+    return res.status(400).json({ error: 'Genre name is required' });
+  }
+
+  try {
+    // Insert new genre into the Genres table
+    const result = await db.query(`
+      INSERT INTO genres (genre_name) 
+      VALUES ($1) 
+      RETURNING genre_id, genre_name;
+    `, [genre_name]);
+
+    // Log the result for debugging
+    console.log('New genre added:', result.rows[0]);
+
+    // Return the newly added genre
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error adding genre:', err);
+    res.status(500).json({ 
+      error: 'Failed to add genre',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+app.put('/api/genres/:name', async (req, res) => {
+  const rawGenreName = req.params.name;
+  const genreName = decodeURIComponent(rawGenreName);
+  const { genre_name: newGenreName } = req.body;
+
+  if (!newGenreName || !genreName) {
+    return res.status(400).json({ error: 'Both current and new genre names are required' });
+  }
+
+  try {
+    await db.query('BEGIN');
+
+    // Check if genre exists
+    const checkQuery = 'SELECT genre_id FROM genres WHERE genre_name = $1';
+    const checkResult = await db.query(checkQuery, [genreName]);
+    
+    if (checkResult.rowCount === 0) {
+      await db.query('ROLLBACK');
+      return res.status(404).json({ error: 'Genre not found' });
+    }
+
+    const genreId = checkResult.rows[0].genre_id;
+
+    // Check if new name already exists
+    const existsQuery = 'SELECT genre_id FROM genres WHERE genre_name = $1 AND genre_id != $2';
+    const existsResult = await db.query(existsQuery, [newGenreName, genreId]);
+    
+    if (existsResult.rowCount > 0) {
+      await db.query('ROLLBACK');
+      return res.status(409).json({ error: 'Genre name already exists' });
+    }
+
+    // Update genre
+    const updateQuery = `
+      UPDATE genres 
+      SET genre_name = $1 
+      WHERE genre_id = $2 
+      RETURNING genre_id, genre_name
+    `;
+    const updateResult = await db.query(updateQuery, [newGenreName, genreId]);
+
+    await db.query('COMMIT');
+    
+    res.status(200).json(updateResult.rows[0]);
+  } catch (err) {
+    await db.query('ROLLBACK');
+    console.error('Error updating genre:', err);
+    res.status(500).json({
+      error: 'Failed to update genre',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+app.delete('/api/genres/:name', async (req, res) => {
+  const rawGenreName = req.params.name;
+  const genreName = decodeURIComponent(rawGenreName);
+
+  try {
+    await db.query('BEGIN');
+
+    // Check if genre exists
+    const checkQuery = 'SELECT genre_id FROM genres WHERE genre_name = $1';
+    const checkResult = await db.query(checkQuery, [genreName]);
+
+    if (checkResult.rowCount === 0) {
+      await db.query('ROLLBACK');
+      return res.status(404).json({ error: 'Genre not found' });
+    }
+
+    const genreId = checkResult.rows[0].genre_id;
+
+    // Remove references in mangagenres (or any related table)
+    const deleteReferencesQuery = 'DELETE FROM mangagenres WHERE genre_id = $1';
+    await db.query(deleteReferencesQuery, [genreId]);
+
+    // Delete the genre itself
+    const deleteGenreQuery = 'DELETE FROM genres WHERE genre_id = $1';
+    await db.query(deleteGenreQuery, [genreId]);
+
+    await db.query('COMMIT');
+
+    res.status(200).json({ message: `Genre "${genreName}" deleted successfully` });
+  } catch (err) {
+    await db.query('ROLLBACK');
+    console.error('Error deleting genre:', err);
+    res.status(500).json({
+      error: 'Failed to delete genre',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
 
 
 app.listen(port, () => {
