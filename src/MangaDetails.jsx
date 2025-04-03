@@ -2,46 +2,28 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./mangaDetails.css";
 
-// Same demo data as in MangaGrid
-const demoMangaData = [
-  {
-    manga_id: 1,
-    title: "One Piece",
-    alternative_title: "ワンピース",
-    cover_art_url: "https://mangaplus.shueisha.co.jp/drm/title/100020/title_thumbnail/31963.webp",
-    status: "Ongoing",
-    description: "Monkey D. Luffy sets off on an adventure to become the Pirate King!",
-    latest_chapter: 1100,
-    latest_chapter_date: "2023-11-20",
-    last_chapter_read: 1050,
-    date_added_to_watchlist: "2023-01-15",
-    year_published: 1997,
-    record_created: "2023-01-10",
-    record_updated_date: "2023-11-20",
-    genres: [
-      { genre_id: 1, genre_name: "Adventure" },
-      { genre_id: 2, genre_name: "Action" },
-      { genre_id: 3, genre_name: "Fantasy" }
-    ]
-  },
-  // ... include all 12 manga entries from MangaGrid here
-  // Make sure each has the same structure with genres array
-];
-
 function MangaDetails() {
   const { manga_id } = useParams();
   const navigate = useNavigate();
   const [manga, setManga] = useState(null);
-  const [loading, setLoading] = useState(false); // Set to false since we're using local data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate loading delay
-    const timer = setTimeout(() => {
-      const foundManga = demoMangaData.find(m => m.manga_id === Number(manga_id));
-      setManga(foundManga || null);
-    }, 300);
-    
-    return () => clearTimeout(timer);
+    const fetchMangaDetails = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/manga/${manga_id}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setManga(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMangaDetails();
   }, [manga_id]);
 
   const formatDate = (dateString) => {
@@ -53,6 +35,8 @@ function MangaDetails() {
     }
   };
 
+  if (loading) return <div className="loading-container">Loading manga details...</div>;
+  if (error) return <div className="error-container">Error: {error}</div>;
   if (!manga) return <div className="not-found-container">Manga not found</div>;
 
   return (
@@ -61,10 +45,6 @@ function MangaDetails() {
         <button className="back-button" onClick={() => navigate(-1)}>
           ← Back
         </button>
-
-        <div className="demo-banner">
-          DEMO MODE - Using cached data
-        </div>
 
         <div className="manga-header">
           <div className="cover-art">
@@ -89,12 +69,38 @@ function MangaDetails() {
           <div className="details-section">
             <h3>Details</h3>
             <div className="details-grid">
-              {/* All your existing detail items */}
               <div className="detail-item">
                 <span className="detail-label">Year Published:</span>
                 <span>{manga.year_published || 'N/A'}</span>
               </div>
-              {/* ... keep all other detail items ... */}
+              <div className="detail-item">
+                <span className="detail-label">Latest Chapter:</span>
+                <span>{manga.latest_chapter || 'N/A'}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Latest Chapter Date:</span>
+                <span>{formatDate(manga.latest_chapter_date)}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Last Chapter Read:</span>
+                <span>{manga.last_chapter_read || '0'}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Chapters Behind:</span>
+                <span>{Math.max(0, (manga.latest_chapter || 0) - (manga.last_chapter_read || 0))}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Added to Watchlist:</span>
+                <span>{formatDate(manga.date_added_to_watchlist)}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Record Created:</span>
+                <span>{formatDate(manga.record_created)}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Last Updated:</span>
+                <span>{formatDate(manga.record_updated_date)}</span>
+              </div>
             </div>
           </div>
 
