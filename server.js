@@ -187,6 +187,101 @@ app.get('/api/manga', async (req, res) => {
   }
 });
 
+// Add this new endpoint to your server.js
+app.get('/api/watchlist', async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const query = `
+      SELECT 
+        m.manga_id,
+        m.title,
+        m.alternative_title,
+        m.cover_art_url,
+        m.description,
+        m.status,
+        m.latest_chapter,
+        m.latest_chapter_date,
+        w.last_chapter_read,
+        w.date_added_to_watchlist,
+        w.is_watched,
+        COUNT(*) OVER() as total_count
+      FROM manga m
+      JOIN watchlist w ON m.manga_id = w.manga_id
+      WHERE w.is_watched = true
+      ORDER BY w.date_added_to_watchlist DESC
+      LIMIT $1 OFFSET $2
+    `;
+
+    const { rows } = await db.query(query, [limit, offset]);
+    
+    res.json({
+      success: true,
+      data: rows,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: rows[0]?.total_count || 0
+      }
+    });
+    
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch watchlist',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// Add this to your server.js
+app.get('/api/manga/:id', async (req, res) => {
+  try {
+    const mangaId = req.params.id;
+    
+    // Fetch manga details
+    const mangaQuery = `
+      SELECT 
+        m.*,
+        w.last_chapter_read,
+        w.date_added_to_watchlist
+      FROM manga m
+      LEFT JOIN watchlist w ON m.manga_id = w.manga_id
+      WHERE m.manga_id = $1
+    `;
+    
+    const mangaResult = await db.query(mangaQuery, [mangaId]);
+    
+    if (mangaResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Manga not found' });
+    }
+    
+    // Fetch genres for this manga
+    const genresQuery = `
+      SELECT g.genre_id, g.genre_name
+      FROM genres g
+      JOIN mangagenres mg ON g.genre_id = mg.genre_id
+      WHERE mg.manga_id = $1
+    `;
+    
+    const genresResult = await db.query(genresQuery, [mangaId]);
+    
+    res.json({
+      ...mangaResult.rows[0],
+      genres: genresResult.rows
+    });
+    
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ 
+      error: 'Failed to fetch manga details',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 app.delete('/api/manga/:id', async (req, res) => {
   try {
     const result = await db.query(

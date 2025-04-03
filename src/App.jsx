@@ -1,43 +1,38 @@
-// import './App.css'
-import react, { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Import React Router components
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./Header";
 import WatchListPage from "./WatchListPage";
 import HomePage from "./HomePage";
 import AdvanceSearchPage from "./AdvanceSearchPage";
-import MangaGrid from "./MangaGrid";
+import MangaDetails from "./MangaDetails";
 import Footer from "./Footer";
-import "./App.css";
 import ScrollToTop from "./ScrollToTop";
-import { useEffect } from 'react';
-
+import "./App.css";
 
 function App() {
-	const [count, setCount] = useState(0);
-
-
-	return (
-		<Router>
-			<ScrollToTop />
-			<div className="container" >
-				<Header /> {/* Header with navigation links */}
-			<div className="body-section">
-				<Routes>
-					<Route path="/" element={<HomePage />} /> {/* Home route */}
-					<Route path="/watchlist" element={<WatchListPage />} /> {/* WatchList route */}
-					<Route path="/advancesearch" element={<AdvanceSearchPage />} /> {/* Advance Search route */}
-					<Route path="/mangadetails" element={<HomePage />} />
-					<Route path="/addmanga" element={<HomePage />} />
-				</Routes>
-			</div>
+  return (
+    <Router>
+      <ScrollToTop />
+      <div className="container">
+        <Header />
         
-        <Footer/>
-        
+        <div className="body-section">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/watchlist" element={<WatchListPage />} />
+            <Route path="/advancesearch" element={<AdvanceSearchPage />} />
+            <Route path="/mangadetails/:manga_id" element={<MangaDetails />} />
+            
+            {/* Fallback routes */}
+            <Route path="/addmanga" element={<HomePage />} />
+            <Route path="*" element={<HomePage />} />
+          </Routes>
+        </div>
+
+        <Footer />
       </div>
     </Router>
-	);
+  );
 }
 
 export default App;
