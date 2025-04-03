@@ -60,8 +60,11 @@ function MangaCard({ manga , onDeleteSuccess }) {
     <div className="manga-card">
       <div className="manga-card-image">
         <img 
-          src={manga.cover_art_url} 
+          src={manga.cover_art_url || "https://media1.tenor.com/m/UNpuEsjDH_MAAAAC/one-piece-one-piece-zoro.gif"} 
           alt={manga.title} 
+          onError={(e) => {
+            e.target.src = "https://media1.tenor.com/m/UNpuEsjDH_MAAAAC/one-piece-one-piece-zoro.gif";
+          }}
         />
       </div>
       <div className="manga-card-info">

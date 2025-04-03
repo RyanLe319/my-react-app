@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import "./mangaGrid.css";
 import MangaCard from "./MangaCard";
 
-function MangaGrid({ currentPage }) {
+function MangaGrid({ currentPage, isWatchlist = false }) {  // Default to false for backward compatibility
   const [mangaList, setMangaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const limit = 10; // Ensure limit matches backend
+  const limit = 10;
 
   useEffect(() => {
     const fetchManga = async () => {
@@ -14,7 +14,11 @@ function MangaGrid({ currentPage }) {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:3000/api/manga?page=${currentPage}&limit=${limit}`);
+        const endpoint = isWatchlist
+          ? `http://localhost:3000/api/watchlist?page=${currentPage}&limit=${limit}`
+          : `http://localhost:3000/api/manga?page=${currentPage}&limit=${limit}`;
+
+        const response = await fetch(endpoint);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.status}`);
@@ -31,17 +35,20 @@ function MangaGrid({ currentPage }) {
     };
 
     fetchManga();
-  }, [currentPage]); // Re-fetch when page changes
+  }, [currentPage, isWatchlist]);  // Re-fetch when page OR mode changes
 
-  
   const handleDeleteSuccess = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/manga?page=${currentPage}&limit=${limit}`);
+      const endpoint = isWatchlist
+        ? `http://localhost:3000/api/watchlist?page=${currentPage}&limit=${limit}`
+        : `http://localhost:3000/api/manga?page=${currentPage}&limit=${limit}`;
+
+      const response = await fetch(endpoint);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.status}`);
       }
-  
+
       const data = await response.json();
       setMangaList(data.data || []);
     } catch (err) {
