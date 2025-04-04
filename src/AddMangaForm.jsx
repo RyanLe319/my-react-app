@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./AddMangaForm.css";
 
 function AddMangaForm({ isOpen, onClose, onSuccess }) {
+
+  // To capture the user info
   const initialFormState = {
     title: "",
     lastChapterRead: "",
@@ -13,32 +15,61 @@ function AddMangaForm({ isOpen, onClose, onSuccess }) {
     image: "",
   };
 
+  
   const [formData, setFormData] = useState(initialFormState);
   const [genreInput, setGenreInput] = useState("");
   const [genres, setGenres] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const popupRef = useRef(null);
 
+  // Handle click outside to close
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  // Update the const that stores the user input
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Auto-expand textarea
+    //Increase the height of the description box if need be
     if (name === "description" && e.target.scrollHeight > e.target.clientHeight) {
       e.target.style.height = "auto";
       e.target.style.height = `${e.target.scrollHeight}px`;
     }
 
+    //Update the info whenever a new input is discovered
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
 
-    // Clear error if user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
+  // Adding a genre to the list of genres
   const handleAddGenre = () => {
     if (genreInput.trim() && !genres.includes(genreInput.trim())) {
       setGenres([...genres, genreInput.trim()]);
@@ -46,10 +77,12 @@ function AddMangaForm({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  // To remove an added genre
   const handleRemoveGenre = (genreToRemove) => {
     setGenres(genres.filter(genre => genre !== genreToRemove));
   };
 
+  // Allows the use of the enter key to add and not just the add button
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -57,11 +90,11 @@ function AddMangaForm({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  // Adds the manga to the DB
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validate required fields
     if (!formData.title.trim()) {
       setErrors({ title: "Title is required" });
       setIsSubmitting(false);
@@ -69,7 +102,6 @@ function AddMangaForm({ isOpen, onClose, onSuccess }) {
     }
 
     try {
-      // Send data to Express backend
       const response = await fetch("http://localhost:3000/adding-manga", {
         method: "POST",
         headers: {
@@ -89,7 +121,6 @@ function AddMangaForm({ isOpen, onClose, onSuccess }) {
       const result = await response.json();
       console.log("Success:", result);
 
-      // Reset form and close
       setFormData(initialFormState);
       setGenres([]);
       onSuccess();
@@ -102,11 +133,12 @@ function AddMangaForm({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  // passing prop from navlink to indicate the Add Manga button was
   if (!isOpen) return null;
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+    <div className={`popup-overlay ${isOpen ? 'active' : ''}`}>
+      <div className="popup-content" ref={popupRef} onClick={(e) => e.stopPropagation()}>
         <button
           className="close-btn"
           onClick={onClose}
@@ -214,7 +246,7 @@ function AddMangaForm({ isOpen, onClose, onSuccess }) {
               <option value="">Select status</option>
               <option value="Ongoing">Ongoing</option>
               <option value="Completed">Completed</option>
-              <option value="Stacking">Stacking</option>
+              <option value="WatchList">WatchList</option>
               <option value="Dropped">Dropped</option>
             </select>
           </div>

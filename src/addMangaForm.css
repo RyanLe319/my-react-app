@@ -1,3 +1,4 @@
+/* Popup Overlay */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -9,8 +10,18 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
+.popup-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Popup Content */
 .popup-content {
   background-color: white;
   padding: 25px;
@@ -20,8 +31,17 @@
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  cursor: auto;
+  pointer-events: auto;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
 }
 
+.popup-overlay.active .popup-content {
+  transform: translateY(0);
+}
+
+/* Close Button */
 .close-btn {
   position: absolute;
   top: 10px;
@@ -30,8 +50,19 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
+.close-btn:hover {
+  color: #ff4444;
+}
+
+.close-btn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Form Elements */
 .form-group {
   margin-bottom: 15px;
 }
@@ -50,6 +81,14 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #4CAF50;
+  outline: none;
 }
 
 .form-group input.error {
@@ -67,6 +106,7 @@
   color: #ff4444;
 }
 
+/* Submit Button */
 .submit-btn {
   background-color: #4CAF50;
   color: white;
@@ -77,29 +117,19 @@
   font-size: 1rem;
   width: 100%;
   margin-top: 10px;
+  transition: background-color 0.3s ease;
 }
 
 .submit-btn:hover {
   background-color: #45a049;
 }
 
-.input-switcher {
-  display: flex;
-  margin-bottom: 8px;
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
-.input-switcher button {
-  padding: 4px 12px;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  cursor: pointer;
-}
-
-.input-switcher button.active {
-  background: #1976d2;
-  color: white;
-}
-
+/* Auto-expanding Textarea */
 .auto-expand-textarea {
   width: 100%;
   padding: 8px;
@@ -135,6 +165,7 @@
   border-radius: 4px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.3s ease;
 }
 
 .add-genre-btn:hover {
@@ -159,6 +190,11 @@
   padding: 4px 8px;
   border-radius: 16px;
   font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.genre-tag:hover {
+  background-color: #d0d0d0;
 }
 
 .remove-genre-btn {
@@ -170,6 +206,7 @@
   font-size: 1rem;
   line-height: 1;
   padding: 0 2px;
+  transition: color 0.2s ease;
 }
 
 .remove-genre-btn:hover {
@@ -181,6 +218,7 @@
   cursor: not-allowed;
 }
 
+/* Loading State */
 .submitting-text {
   display: flex;
   align-items: center;
@@ -200,4 +238,12 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message.submit-error {
+  margin: 10px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #ff4444;
 }

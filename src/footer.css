@@ -19,3 +19,9 @@
   color: #6c757d;
   font-weight: 400;
 }
+
+
+#footer-nav .nav-links a:hover,
+#footer-nav .nav-links button.nav-link-btn:hover {
+    color: #b0d2f7;
+}

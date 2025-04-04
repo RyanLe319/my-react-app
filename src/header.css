@@ -34,3 +34,17 @@
   left: 50%;
   transform: translateX(-50%);
 }
+
+.MuiInput-underline:after {
+  border-bottom-color: #b0d2f7 !important;
+}
+
+/* Search icon color */
+.search-container .MuiSvgIcon-root {
+  color: #b0d2f7;
+}
+
+/* Focus state for the search field */
+.search-container .Mui-focused .MuiSvgIcon-root {
+  color: #b0d2f7;
+}

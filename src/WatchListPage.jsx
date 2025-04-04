@@ -6,6 +6,11 @@ import "./watchListPage.css";
 function WatchListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [filterData] = useState({  // Add default filterData
+    selectedGenres: [],
+    minChapters: 1,
+    currentSort: 'newest'
+  });
 
   useEffect(() => {
     const fetchTotalPages = async () => {
@@ -34,7 +39,8 @@ function WatchListPage() {
       <h1>Your Watchlist</h1>
       <MangaGrid 
         currentPage={currentPage} 
-        isWatchlist={true}  // Key difference!
+        isWatchlist={true}
+        filterData={filterData}  // Pass the filterData
       />
       <PaginationControls
         currentPage={currentPage}

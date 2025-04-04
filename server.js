@@ -1,24 +1,23 @@
+// Import necessary modules
 import express from "express";
-import bodyParser from "body-parser";
-import pg from "pg";
-import env from "dotenv";
-import cors from "cors"; // Import CORS
-import ejs from "ejs";
+import bodyParser from "body-parser"; // Deprecated in modern Express, but still okay for older setups
+import pg from "pg"; // PostgreSQL client
+import env from "dotenv"; // Loads environment variables from .env file
+import cors from "cors"; // Handles Cross-Origin Resource Sharing
+import ejs from "ejs"; // Optional: for server-side templating (currently unused here)
 
 const app = express();
 const port = 3000;
-env.config();
+env.config(); // Load environment variables from .env
 
 // Enable CORS for all routes
 app.use(cors());
 
-// Set up middleware
-// app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
-// Add this right after your CORS middleware
-app.use(express.json()); // For parsing application/json
+// Middleware setup
+app.use(express.static("public")); // Serve static files from 'public' folder
+app.use(express.json()); // Parse JSON request bodies
 
-// PostgreSQL client setup
+// Setup PostgreSQL client using environment variables
 const db = new pg.Client({
 	user: process.env.PG_USER,
 	host: process.env.PG_HOST,
@@ -27,11 +26,13 @@ const db = new pg.Client({
 	port: process.env.PG_PORT,
 });
 
-db.connect();
+db.connect(); // Connect to the database
 
+// Route to add a manga to the database
 app.post("/adding-manga", async (req, res) => {
   try {
-    // Destructure all possible fields from request body
+
+    // Deconstruct and store fields from request body
     const {
       title,
       lastChapterRead,
@@ -44,7 +45,7 @@ app.post("/adding-manga", async (req, res) => {
       genres
     } = req.body;
 
-    // Validate required fields
+    // Ensure required fields are present
     if (!title) {
       return res.status(400).json({
         error: "Title is required",
@@ -52,10 +53,10 @@ app.post("/adding-manga", async (req, res) => {
       });
     }
 
-    // Start transaction
+    // Start transaction , transaction 100% complete or no deal
     await db.query('BEGIN');
 
-    // Insert manga
+    // Insert manga into the 'manga' table
     const mangaResult = await db.query(
       `INSERT INTO manga (
         title, 
@@ -79,49 +80,75 @@ app.post("/adding-manga", async (req, res) => {
 
     const mangaId = mangaResult.rows[0].manga_id;
 
-    // Only add to watchlist if status is "Stacking"
-    if (status === "Stacking") {
-      await db.query(
-        `INSERT INTO watchlist (
-          manga_id,
-          last_chapter_read,
-          date_added_to_watchlist
-        ) VALUES ($1, $2, $3)`,
-        [
-          mangaId,
-          lastChapterRead || 0,  // Default to 0 if not provided
-          lastReadDate ? new Date(lastReadDate) : new Date()  // Use current date if not provided
-        ]
-      );
+    // If manga has a status "WatchList", add it to the watchlist and update is_watched to true
+    if (status === "WatchList") {
+      try {
+        // Insert manga into the watchlist
+        await db.query(
+          `INSERT INTO watchlist (
+            manga_id,
+            last_chapter_read,
+            date_added_to_watchlist
+          ) VALUES ($1, $2, NOW())`,
+          [
+            mangaId,
+            lastChapterRead || 0,
+          ]
+        );
+
+        // Update is_watched to true for the manga
+        await db.query(
+          `UPDATE watchlist
+          SET is_watched = true
+          WHERE manga_id = $1`,
+          [mangaId]
+        );
+
+      } catch (error) {
+        console.error("Error updating watchlist or is_watched:", error);
+        res.status(500).json({
+          error: "Failed to add manga to watchlist or update is_watched",
+          details: error.message,
+        });
+      }
     }
 
-    // Process genres if they exist
+
+    // Insert genres if provided
     if (genres && genres.length > 0) {
+
+      // use for of with async functions as it waits for the async op to finish before moving to the next iteration
       for (const genreName of genres) {
+
+        // Check if genre already exists
         const genreCheck = await db.query(
-          'SELECT genre_id FROM Genres WHERE genre_name = $1',
+          'SELECT genre_id FROM genres WHERE genre_name = $1',
           [genreName]
         );
 
         let genreId;
         if (!genreCheck.rows.length) {
+
+          // Insert new genre
           const newGenre = await db.query(
-            'INSERT INTO Genres (genre_name) VALUES ($1) RETURNING genre_id',
+            'INSERT INTO genres (genre_name) VALUES ($1) RETURNING genre_id',
             [genreName]
           );
+
           genreId = newGenre.rows[0].genre_id;
         } else {
           genreId = genreCheck.rows[0].genre_id;
         }
 
+        // Create relationship in join table
         await db.query(
-          'INSERT INTO MangaGenres (manga_id, genre_id) VALUES ($1, $2)',
+          'INSERT INTO mangagenres (manga_id, genre_id) VALUES ($1, $2)',
           [mangaId, genreId]
         );
       }
     }
 
-    await db.query('COMMIT');
+    await db.query('COMMIT'); // Commit the transaction
 
     res.json({
       success: true,
@@ -129,7 +156,7 @@ app.post("/adding-manga", async (req, res) => {
     });
 
   } catch (error) {
-    await db.query('ROLLBACK');
+    await db.query('ROLLBACK'); // Rollback on error
     console.error("DB error:", error);
     res.status(500).json({
       error: "Failed to add manga",
@@ -139,14 +166,37 @@ app.post("/adding-manga", async (req, res) => {
   }
 });
 
-
-// server.js (updated)
+// Updated GET endpoint with search functionality
 app.get('/api/manga', async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
-    const offset = (page - 1) * limit;
+    const { 
+      page = 1, 
+      limit = 10,
+      genres = '',
+      min_chapters = 0,
+      sort = 'newest',
+      search = ''  // New search parameter
+    } = req.query;
 
-    const query = `
+    const offset = (page - 1) * limit;
+    const genreList = genres ? genres.split(',') : [];
+    const minChaptersNum = Number(min_chapters) || 0;
+
+    // Sorting options
+    const sortOptions = {
+      'a-z': { field: 'm.title', order: 'ASC' },
+      'newest': { field: 'm.record_created', order: 'DESC' },
+      'updated': { field: 'm.latest_chapter_date', order: 'DESC' },
+      'chapters': { field: 'm.latest_chapter', order: 'DESC' },
+      'unread': { 
+        field: '(m.latest_chapter - COALESCE(w.last_chapter_read, 0))', 
+        order: 'DESC' 
+      }
+    };
+
+    const currentSort = sortOptions[sort] || sortOptions.newest;
+
+    let query = `
       SELECT 
         m.manga_id,
         m.title,
@@ -161,12 +211,52 @@ app.get('/api/manga', async (req, res) => {
         COUNT(*) OVER() as total_count
       FROM manga m
       LEFT JOIN watchlist w ON m.manga_id = w.manga_id
-      ORDER BY m.record_created DESC
-      LIMIT $1 OFFSET $2
     `;
 
-    const { rows } = await db.query(query, [limit, offset]);
-    console.log(rows);
+    const whereClauses = [];
+    const queryParams = [];
+
+    // Add search condition (searches title, alternative title, and description)
+    if (search) {
+      whereClauses.push(`
+        (m.title ILIKE $${queryParams.length + 1} OR 
+         m.alternative_title ILIKE $${queryParams.length + 1} OR
+         m.description ILIKE $${queryParams.length + 1})
+      `);
+      queryParams.push(`%${search}%`);
+    }
+
+    // Add genre filter
+    if (genreList.length > 0) {
+      whereClauses.push(`
+        m.manga_id IN (
+          SELECT mg.manga_id 
+          FROM mangagenres mg
+          JOIN genres g ON mg.genre_id = g.genre_id
+          WHERE g.genre_name = ANY($${queryParams.length + 1})
+        )
+      `);
+      queryParams.push(genreList);
+    }
+
+    // Add minimum chapters filter
+    if (minChaptersNum > 0) {
+      whereClauses.push(`m.latest_chapter >= $${queryParams.length + 1}`);
+      queryParams.push(minChaptersNum);
+    }
+
+    // Combine WHERE clauses if they exist
+    if (whereClauses.length > 0) {
+      query += ' WHERE ' + whereClauses.join(' AND ');
+    }
+
+    // Add sorting and pagination
+    query += ` ORDER BY ${currentSort.field} ${currentSort.order}`;
+    queryParams.push(limit, offset);
+    query += ` LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}`;
+
+    const { rows } = await db.query(query, queryParams);
+
     res.json({
       success: true,
       data: rows,
@@ -176,7 +266,7 @@ app.get('/api/manga', async (req, res) => {
         total: rows[0]?.total_count || 0
       }
     });
-    
+
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ 
@@ -187,7 +277,7 @@ app.get('/api/manga', async (req, res) => {
   }
 });
 
-// Add this new endpoint to your server.js
+// GET endpoint to retrieve user's watchlist
 app.get('/api/watchlist', async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -215,7 +305,7 @@ app.get('/api/watchlist', async (req, res) => {
     `;
 
     const { rows } = await db.query(query, [limit, offset]);
-    
+
     res.json({
       success: true,
       data: rows,
@@ -225,7 +315,7 @@ app.get('/api/watchlist', async (req, res) => {
         total: rows[0]?.total_count || 0
       }
     });
-    
+
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ 
@@ -236,12 +326,12 @@ app.get('/api/watchlist', async (req, res) => {
   }
 });
 
-// Add this to your server.js
+// GET endpoint for individual manga details by ID
 app.get('/api/manga/:id', async (req, res) => {
   try {
     const mangaId = req.params.id;
-    
-    // Fetch manga details
+
+    // Fetch main manga info
     const mangaQuery = `
       SELECT 
         m.*,
@@ -253,12 +343,12 @@ app.get('/api/manga/:id', async (req, res) => {
     `;
     
     const mangaResult = await db.query(mangaQuery, [mangaId]);
-    
+
     if (mangaResult.rows.length === 0) {
       return res.status(404).json({ error: 'Manga not found' });
     }
-    
-    // Fetch genres for this manga
+
+    // Fetch genres
     const genresQuery = `
       SELECT g.genre_id, g.genre_name
       FROM genres g
@@ -267,12 +357,12 @@ app.get('/api/manga/:id', async (req, res) => {
     `;
     
     const genresResult = await db.query(genresQuery, [mangaId]);
-    
+
     res.json({
       ...mangaResult.rows[0],
       genres: genresResult.rows
     });
-    
+
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ 
@@ -282,29 +372,32 @@ app.get('/api/manga/:id', async (req, res) => {
   }
 });
 
+// DELETE endpoint to remove manga by ID
 app.delete('/api/manga/:id', async (req, res) => {
   try {
     const result = await db.query(
       'DELETE FROM manga WHERE manga_id = $1 RETURNING *',
       [req.params.id]
     );
-    
+
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Manga not found' });
     }
-    
+
     res.json({ 
       success: true,
-      deletedManga: result.rows[0]
+      deleted: result.rows[0]
     });
+
   } catch (err) {
-    console.error('Delete error:', err);
+    console.error('Database error:', err);
     res.status(500).json({ 
       error: 'Failed to delete manga',
       details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
+
 
 // Add this to your server.js (before app.listen)
 app.get('/api/genres', async (req, res) => {
@@ -457,7 +550,7 @@ app.delete('/api/genres/:name', async (req, res) => {
   }
 });
 
-
+// Start server
 app.listen(port, () => {
-	console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });

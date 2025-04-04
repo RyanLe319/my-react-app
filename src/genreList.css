@@ -1,3 +1,4 @@
+/* ============ Base Container Styles ============ */
 .genre-filter-box {
   border: 2px solid #000;
   border-radius: 8px;
@@ -9,6 +10,7 @@
   position: relative;
 }
 
+/* ============ Header Styles ============ */
 .filter-header {
   display: flex;
   justify-content: space-between;
@@ -21,6 +23,7 @@
   font-size: 1.2rem;
 }
 
+/* ============ Grid & Item Styles ============ */
 .genre-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -55,6 +58,7 @@
   height: 16px;
 }
 
+/* ============ Action Buttons ============ */
 .genre-actions {
   display: flex;
   gap: 4px;
@@ -90,18 +94,20 @@
 
 .add-genre-btn {
   padding: 6px 12px;
-  background: #007bff;
-  color: white;
+  background: #b0d2f7;
+  color: #555;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.3s;
 }
 
 .add-genre-btn:hover {
-  background: #0056b3;
+  background: #8fbde8;
+  color: #333;
 }
 
+/* ============ Modal Styles ============ */
 .genre-modal {
   position: fixed;
   top: 0;
@@ -169,3 +175,125 @@
   background: #e0e0e0;
 }
 
+/* ============ Bottom Controls ============ */
+.bottom-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* ============ Chapter Stepper ============ */
+.number-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-label {
+  font-size: 14px;
+  color: #555;
+}
+
+.stepper-input-container {
+  position: relative;
+  border: 1px solid #b0d2f7;
+  border-radius: 4px;
+  width: 70px;
+  height: 32px;
+}
+
+.stepper-input {
+  width: 100%;
+  height: 100%;
+  padding: 6px 20px 6px 8px;
+  border: none;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+  font-size: 14px;
+}
+
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.stepper-arrows {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stepper-arrow {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #555;
+  font-size: 10px;
+  line-height: 1;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+}
+
+.stepper-arrow:hover {
+  color: #333;
+}
+
+.stepper-arrow:active {
+  transform: scale(0.9);
+}
+
+/* ============ Button Group Styles ============ */
+.filter-buttons-group {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.search-genre-btn,
+.reset-filters-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 2px solid #b0d2f7;
+  color: #555;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-genre-btn:hover,
+.reset-filters-btn:hover {
+  background: rgba(176, 210, 247, 0.2);
+  color: #333;
+  border-color: #8fbde8;
+}
+
+.reset-filters-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============ Utility Classes ============ */
+/* Remove default spin arrows */
+.chapter-spin-button::-webkit-inner-spin-button,
+.chapter-spin-button::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
